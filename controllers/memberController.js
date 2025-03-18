@@ -131,7 +131,7 @@ export async function logoutMember(req, res) {
   
     } 
     catch (err) {   
-      return res.json({err:err});
+      return json({login:true})
     }
   
 }

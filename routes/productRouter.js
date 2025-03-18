@@ -5,7 +5,6 @@ import * as productController from "../controllers/productController.js"
 const router = express.Router()
 
 router.get('/products' , productController.getAllProduct)
-router.get('/products/ten',productController.getTenProduct)
 router.get('/products/:id',productController.getProductById)
 router.get('/products/search/:id',productController.getSearchProduct)
 router.get('/products/brands/:id',productController.getProductByBrandId)

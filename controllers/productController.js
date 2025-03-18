@@ -1,7 +1,7 @@
 import database from "../service/database.js";
 
 export async function getAllProduct(req, res) {
-    console.log(`GET / products is Requested`);
+    console.log(`GET / All products is Requested`);
     try {
         // const strQry = ' SELECT * FROM products ORDER BY "pdId" ASC';
         const result = await database.query(`
@@ -216,40 +216,6 @@ export async function getProductByBrandId(req, res) {
     }
 }
 
-export async function getTenProduct(req, res) {
-    console.log(`GET / TEN products is Requested`);
-    try {
-        const result = await database.query(`
-                                  SELECT p.*,(
-                                    SELECT row_to_json(brand_obj)
-                                    FROM 
-                                    (
-                                      SELECT "brandId","brandName"
-                                      FROM brands
-                                      WHERE "brandId" = p."brandId"
-                                    )brand_obj
-                                  )AS brand,
-  
-                                  (
-                                    SELECT row_to_json(pdt_obj)
-                                    FROM 
-                                    (
-                                      SELECT "pdTypeId","pdTypeName"
-                                      FROM "pdTypes"
-                                      WHERE "pdTypeId" = p."pdTypeId"
-                                    )pdt_obj
-                                  )AS pdt
-                      FROM products p  
-                      ORDER BY "pdId" ASC 
-                      LIMIT 3`);
-        return res.status(200).json(result.rows);
-    } catch (err) {
-        return res.status(500).json({
-            error: err.message,
-        });
-    }
-}
-
 export async function getSearchProduct(req, res) {
     console.log(`GET / getSearchProduct id = ${req.params.id} is Requested`);
     try {
@@ -277,9 +243,7 @@ export async function getSearchProduct(req, res) {
                                   
                                 FROM products p 
                                 WHERE (
-                                p."pdId"  ILIKE $1
-                                                    OR p."pdName" ILIKE $1
-                                                    OR p."pdRemark"  ILIKE $1 )          
+                                p."pdName" ILIKE $1)          
                                           ORDER BY "pdId" ASC`,
             values: [`%${req.params.id}%`],
         });
