@@ -92,6 +92,9 @@ export async function loginMember(req, res) {
         const user = {
           memEmail : result.rows[0].memEmail,
           memName : result.rows[0].memName,
+          memPhone: result.rows[0].memPhone,
+          memGender: result.rows[0].memGender,
+          memBirth: result.rows[0].memBirth,
         }
         const secret_key = process.env.SECRET_KEY
         const token = jwt.sign(user,secret_key,{expiresIn:'1h'})

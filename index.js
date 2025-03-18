@@ -3,8 +3,9 @@ import dotenv from "dotenv"
 import bodyParser from "body-parser";
 import cors from "cors"
 
-import memberRoute from "./routes/memberRouter.js"
-import productRoute from "./routes/productRouter.js"
+import memberRoute from "./routes/memberRoute.js"
+import productRoute from "./routes/productRoute.js"
+import cartRoute from "./routes/cartRoute.js"
 
 dotenv.config()
 
@@ -28,6 +29,7 @@ app.use(bodyParser.json())
 
 app.use(memberRoute)
 app.use(productRoute)
+app.use(cartRoute)
 
 app.listen(port, () => {
   console.log(`Server is Running on port : ${port}`);
