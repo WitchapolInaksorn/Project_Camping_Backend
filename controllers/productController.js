@@ -139,7 +139,7 @@ export async function deleteProduct(req, res) {
     }
     catch (err) {
         return res.status(500).json({
-            error: err.message,
+            error: err.message
         });
     }
 }

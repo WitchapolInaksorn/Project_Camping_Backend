@@ -116,60 +116,139 @@ export async function postCartDtl(req, res) {
 }
 
 export async function sumCart(req, res) {
-    console.log(`GET SumCart ${req.params.id} is requested `)
-    const result = await database.query({
-        text: `  SELECT SUM(qty) AS qty,SUM(qty*price) AS money
+  console.log(`GET SumCart ${req.params.id} is requested `);
+  const result = await database.query({
+    text: `  SELECT SUM(qty) AS qty,SUM(qty*price) AS money
                 FROM "cartDtl" ctd
-                WHERE ctd."cartId" = $1` ,
-        values: [req.params.id] 
-    })
-    console.log(result.rows[0])
-    return res.json({
-        id: req.params.id,
-        qty: result.rows[0].qty,
-        money: result.rows[0].money
-    })
+                WHERE ctd."cartId" = $1`,
+    values: [req.params.id],
+  });
+  console.log(result.rows[0]);
+  return res.json({
+    id: req.params.id,
+    qty: result.rows[0].qty,
+    money: result.rows[0].money,
+  });
 }
 
 export async function getCart(req, res) {
-    console.log(`GET Cart is Requested`)
-    try {
-        const result = await database.query({
-            text:`  SELECT ct.*, SUM(ctd.qty) AS sqty,SUM(ctd.price*ctd.qty) AS sprice
+  console.log(`GET Cart is Requested`);
+  try {
+    const result = await database.query({
+      text: `  SELECT ct.*, SUM(ctd.qty) AS sqty,SUM(ctd.price*ctd.qty) AS sprice
                     FROM carts ct LEFT JOIN "cartDtl" ctd ON ct."cartId" = ctd."cartId"
                     WHERE ct."cartId"=$1
-                    GROUP BY ct."cartId" ` ,
-            values:[req.params.id]
-        })
-        console.log(`id=${req.params.id} \n`+result.rows[0])
-        return res.json(result.rows)
-    }
-    catch (err) {
-        return res.json({
-            error: err.message
-        })
-    }
+                    GROUP BY ct."cartId" `,
+      values: [req.params.id],
+    });
+    console.log(`id=${req.params.id} \n` + result.rows[0]);
+    return res.json(result.rows);
+  } catch (err) {
+    return res.json({
+      error: err.message,
+    });
+  }
 }
 
 export async function getCartDtl(req, res) {
-    console.log(`GET CartDtl is Requested`)
-    try {
-        const result = await database.query({
-        text:`  SELECT  ROW_NUMBER() OVER (ORDER BY ctd."pdId") AS row_number,
+  console.log(`GET CartDtl is Requested`);
+  try {
+    const result = await database.query({
+      text: `  SELECT  ROW_NUMBER() OVER (ORDER BY ctd."pdId") AS row_number,
                         ctd."pdId",pd."pdName",ctd.qty,ctd.price
                 FROM    "cartDtl" ctd LEFT JOIN "products" pd ON ctd."pdId" = pd."pdId"  
                 WHERE ctd."cartId" =$1
-                ORDER BY ctd."pdId" ` ,
-            values:[req.params.id]
-        })
-        console.log(`id=${req.params.id} \n`+result.rows[0])
-        return res.json(result.rows)
-    }
-    catch (err) {
-        return res.json({
-            error: err.message
-        })
-    }
+                ORDER BY ctd."pdId" `,
+      values: [req.params.id],
+    });
+    console.log(`id=${req.params.id} \n` + result.rows[0]);
+    return res.json(result.rows);
+  } catch (err) {
+    return res.json({
+      error: err.message,
+    });
   }
-  
-  
+}
+
+export async function getCartByCus(req, res) {
+  console.log(`POST Cart By Customer is Requested`);
+  try {
+    const result = await database.query({
+      text: `  SELECT ROW_NUMBER() OVER (ORDER BY ct."cartId" DESC) AS row_number,
+                            ct.*, SUM(ctd.qty) AS sqty,SUM(ctd.price*ctd.qty) AS sprice
+                    FROM carts ct LEFT JOIN "cartDtl" ctd ON ct."cartId" = ctd."cartId"
+                    WHERE ct."cusId"=$1
+                    GROUP BY ct."cartId"
+                    ORDER BY ct."cartId" DESC`,
+      values: [req.body.id],
+    });
+    console.log(`id=${req.body.id} \n` + result.rows[0]);
+    return res.json(result.rows);
+  } catch (err) {
+    return res.json({
+      error: err.message,
+    });
+  }
+}
+
+export async function delCart(req, res) {
+  console.log(`DELETE / Cart id : ${req.params.id} is Requested`);
+  try {
+    await database.query({
+      text: `DELETE FROM "cartDtl" WHERE "cartId" = $1`,
+      values: [req.params.id],
+    });
+
+    const result = await database.query({
+      text: `DELETE FROM "carts" WHERE "cartId" = $1;`,
+      values: [req.params.id],
+    });
+
+    if (result.rowCount == 0) {
+      return res.status(404).json({
+        error: `id : ${req.params.id} is not found`,
+      });
+    }
+    res.status(204).end();
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function delCartDtl(req, res) {
+  console.log(`DELETE / Cartdtl id : ${req.params.id} is Requested`);
+  try {
+    const result = await database.query({
+      text: `DELETE FROM "cartDtl" WHERE "pdId" = $1`,
+      values: [req.params.id],
+    });
+
+    if (result.rowCount == 0) {
+      return res.status(404).json({
+        error: `id : ${req.params.id} is not found`,
+      });
+    }
+    res.status(204).end();
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function confirmCart(req, res) {
+  console.log(`POST / confirm CartId : ${req.params.id} is Requested`);
+  try {
+    const result = await database.query({
+      text: `UPDATE "carts" SET "cartCf" = true WHERE "cartId" = $1 RETURNING *;`,
+      values: [req.params.id],
+    });
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: `Cart ID: ${req.params.id} not found` });
+    }
+
+    return res.json({ message: `Cart ID : ${req.params.id} is confirmed!` });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
