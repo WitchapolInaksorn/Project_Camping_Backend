@@ -1,0 +1,825 @@
+openapi: 3.0.0
+info:
+  title: InwzaShop API
+  description: Camping Shop Project from Inwza Group.
+  version: 0.1
+servers:
+  - url: http://localhost:3000/
+tags:
+  - name: Product
+    description: APIs related to product management
+  - name: Member
+    description: APIs related to member management
+  - name: Cart
+    description: APIs related to cart management
+
+paths:
+  /products:
+    # GET All Products
+    get:
+      summary: Returns a list of all products
+      description: |
+        List all products in array of object format.<br>
+        Each product contains details like product ID, name, price, etc.
+      tags:
+        - Product
+      responses:
+        "200":
+          description: A JSON array of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/products"
+
+    # POST Create Product
+    post:
+      summary: Create a new product
+      description: Add a new product to the database
+      tags:
+        - Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/products"
+      responses:
+        "201":
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/products"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "pdId and pdName is required"
+        "409":
+          description: Conflict - Product already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "pdId : PROD001 is Exists !!"
+
+  /products/{id}:
+    # GET Product by ID
+    get:
+      summary: Get a product by ID
+      description: Returns a single product by its ID
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/products"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "id : PROD001 is not found"
+
+    # PUT Update Product
+    put:
+      summary: Update a product
+      description: Update an existing product by ID
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/products"
+      responses:
+        "201":
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/products"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "id : PROD001 is not found"
+
+    # DELETE Product
+    delete:
+      summary: Delete a product
+      description: Delete a product by ID
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product ID
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "id : PROD001 is deleted successfully"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "id : PROD001 is not found"
+
+  /products/search/{id}:
+    # GET Search Products
+    get:
+      summary: Search products by name
+      description: Search products by name (case-insensitive)
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Search term
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of matching products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/products"
+
+  /products/brands/{id}:
+    # GET Products by Brand ID
+    get:
+      summary: Get products by brand ID
+      description: Returns all products for a specific brand
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Brand ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products for the brand
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/products"
+        "404":
+          description: Brand not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "id : BRAND001 is not found"
+
+  /members:
+    # GET All Members
+    get:
+      summary: Get all members
+      description: Returns a list of all registered members
+      tags:
+        - Member
+      responses:
+        "200":
+          description: A JSON array of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/member"
+
+  /regist:
+    # POST Register Member
+    post:
+      summary: Register a new member
+      description: Create a new member account
+      tags:
+        - Member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/memberRegistration"
+      responses:
+        "200":
+          description: Registration status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  regist:
+                    type: boolean
+                  message:
+                    type: string
+                    nullable: true
+
+  /login:
+    # POST Login Member
+    post:
+      summary: Login member
+      description: Authenticate member and return JWT token in cookie
+      tags:
+        - Member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/memberLogin"
+      responses:
+        "200":
+          description: Login status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  login:
+                    type: boolean
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: token=abcde12345; Path=/; Secure; HttpOnly; SameSite=None
+
+  /logout:
+    # GET Logout Member
+    get:
+      summary: Logout member
+      description: Clear authentication cookie
+      tags:
+        - Member
+      responses:
+        "200":
+          description: Logout status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  login:
+                    type: boolean
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=None
+
+  /members/uploadimg:
+    # POST Upload Member Image
+    post:
+      summary: Upload member image
+      description: Upload profile image for member
+      tags:
+        - Member
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /members/update:
+    # PUT Update Member
+    put:
+      summary: Update member information
+      description: Update member profile details
+      tags:
+        - Member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/memberUpdate"
+      responses:
+        "200":
+          description: Update status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  update:
+                    type: boolean
+                  message:
+                    type: string
+
+  /cart/check:
+    post:
+      summary: Check customer's active cart
+      description: Check if customer has an active (unconfirmed) cart
+      tags:
+        - Cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memEmail:
+                  type: string
+                  format: email
+                  description: Customer's email address
+              required:
+                - memEmail
+      responses:
+        "200":
+          description: Cart status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cartExist:
+                    type: boolean
+                  cartId:
+                    type: string
+                    nullable: true
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  errormessage:
+                    type: string
+
+  /cart:
+    post:
+      summary: Create a new cart
+      description: Create a new shopping cart for customer
+      tags:
+        - Cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cusId:
+                  type: string
+                  description: Customer ID
+              required:
+                - cusId
+      responses:
+        "200":
+          description: Cart created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cartOK:
+                    type: boolean
+                  messageAddCart:
+                    type: string
+
+  /cart/detail:
+    post:
+      summary: Add product to cart
+      description: Add or update product in cart details
+      tags:
+        - Cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cartId:
+                  type: string
+                pdId:
+                  type: string
+                pdPrice:
+                  type: number
+              required:
+                - cartId
+                - pdId
+                - pdPrice
+      responses:
+        "200":
+          description: Product added to cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cartDtlOK:
+                    type: boolean
+                  messageAddCart:
+                    type: string
+
+  /cart/summary/{id}:
+    get:
+      summary: Get cart summary
+      description: Get total quantity and amount in cart
+      tags:
+        - Cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cart ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cart summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  qty:
+                    type: number
+                  money:
+                    type: number
+
+  /cart/{id}:
+    get:
+      summary: Get cart information
+      description: Get cart header information
+      tags:
+        - Cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cart ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cart information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/cart"
+
+    delete:
+      summary: Delete cart
+      description: Delete cart and all its items
+      tags:
+        - Cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cart ID
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Cart deleted successfully
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /cart/detail/{id}:
+    get:
+      summary: Get cart items
+      description: Get all products in cart
+      tags:
+        - Cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cart ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of cart items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/cartDetail"
+
+    delete:
+      summary: Remove item from cart
+      description: Remove specific product from cart
+      tags:
+        - Cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product ID to remove
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Item removed successfully
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /cart/customer:
+    post:
+      summary: Get customer's carts
+      description: Get all carts for specific customer
+      tags:
+        - Cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Customer ID
+              required:
+                - id
+      responses:
+        "200":
+          description: List of customer's carts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/cart"
+
+  /cart/confirm/{id}:
+    post:
+      summary: Confirm cart
+      description: Mark cart as confirmed/completed
+      tags:
+        - Cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cart ID to confirm
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cart confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Cart not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+components:
+  schemas:
+    products:
+      type: object
+      properties:
+        pdId:
+          type: string
+        pdName:
+          type: string
+        pdPrice:
+          type: number
+        pdRemark:
+          type: string
+        pdTypeId:
+          type: string
+        brandId:
+          type: string
+        brand:
+          $ref: "#/components/schemas/brands"
+        pdt:
+          $ref: "#/components/schemas/productType"
+
+    brands:
+      type: object
+      properties:
+        brandId:
+          type: string
+        brandName:
+          type: string
+
+    productType:
+      type: object
+      properties:
+        pdTypeId:
+          type: string
+        pdTypeName:
+          type: string
+
+    member:
+      type: object
+      properties:
+        memEmail:
+          type: string
+          format: email
+        memName:
+          type: string
+        memRole:
+          type: string
+        memHash:
+          type: string
+        memPhone:
+          type: string
+        memGender:
+          type: string
+        memBirth:
+          type: string
+          format: date
+
+    memberRegistration:
+      type: object
+      properties:
+        memEmail:
+          type: string
+          format: email
+        memName:
+          type: string
+        password:
+          type: string
+          format: password
+        memPhone:
+          type: string
+        memGender:
+          type: string
+        memBirth:
+          type: string
+          format: date
+
+    memberLogin:
+      type: object
+      properties:
+        memEmail:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    memberUpdate:
+      type: object
+      properties:
+        memEmail:
+          type: string
+          format: email
+        memName:
+          type: string
+        memPhone:
+          type: string
+        memGender:
+          type: string
+        memBirth:
+          type: string
+          format: date
+
+    cart:
+      type: object
+      properties:
+        cartId:
+          type: string
+        cusId:
+          type: string
+        cartDate:
+          type: string
+          format: date-time
+        cartCf:
+          type: boolean
+        sqty:
+          type: number
+        sprice:
+          type: number
+
+    cartDetail:
+      type: object
+      properties:
+        row_number:
+          type: integer
+        pdId:
+          type: string
+        pdName:
+          type: string
+        qty:
+          type: number
+        price:
+          type: number

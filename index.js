@@ -2,6 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cors from "cors";
+import swaggerUI from "swagger-ui-express"
+import yaml from "yaml"
+import fs from "fs"
 
 import memberRoute from "./routes/memberRoute.js";
 import productRoute from "./routes/productRoute.js";
@@ -11,6 +14,10 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
+
+const swaggerfile = fs.readFileSync('service/swagger.yaml','utf-8')
+const swaggerDoc = yaml.parse(swaggerfile)
+app.use('/api-doc',swaggerUI.serve,swaggerUI.setup(swaggerDoc))
 
 //use cors before routes
 app.use(

@@ -97,7 +97,10 @@ export async function loginMember(req, res) {
         memPhone: result.rows[0].memPhone,
         memGender: result.rows[0].memGender,
         memBirth: result.rows[0].memBirth,
+        memRole: result.rows[0].memRole,
       };
+      console.log(user);
+
       const secret_key = process.env.SECRET_KEY;
       const token = jwt.sign(user, secret_key, { expiresIn: "1h" });
 
@@ -143,6 +146,73 @@ export async function uploadMember(req, res) {
     }
     res.status(200).json({ message: "File uploaded successfully!" });
   });
+}
+
+export async function updateMember(req, res) {
+  console.log(`PUT / Update Member is requested`);
+  try {
+    if (!req.body.memEmail) {
+      return res.json({ update: false, message: "Email is required." });
+    }
+
+    if (
+      !req.body.memName ||
+      !req.body.memPhone ||
+      !req.body.memGender ||
+      !req.body.memBirth
+    ) {
+      return res.json({ update: false, message: "All fields are required." });
+    }
+
+    const existsResult = await database.query({
+      text: `SELECT EXISTS (SELECT * FROM members WHERE "memEmail" = $1)`,
+      values: [req.body.memEmail],
+    });
+
+    if (!existsResult.rows[0].exists) {
+      return res.json({
+        update: false,
+        message: `Member with email ${req.body.memEmail} does not exist.`,
+      });
+    }
+
+    await database.query({
+      text: `UPDATE members SET "memName" = $1, "memPhone" = $2, "memGender" = $3, "memBirth" = $4 WHERE "memEmail" = $5`,
+      values: [
+        req.body.memName,
+        req.body.memPhone,
+        req.body.memGender,
+        req.body.memBirth,
+        req.body.memEmail,
+      ],
+    });
+
+    const roleResult = await database.query({
+      text: `SELECT "memRole" FROM members WHERE "memEmail" = $1`,
+      values: [req.body.memEmail],
+    });
+
+    const updatedUser = {
+      memEmail: req.body.memEmail,
+      memName: req.body.memName,
+      memPhone: req.body.memPhone,
+      memGender: req.body.memGender,
+      memBirth: req.body.memBirth,
+      memRole: req.body.memRole,
+      memRole: roleResult.rows[0].memRole
+    };
+
+    const secret_key = process.env.SECRET_KEY;
+    const token = jwt.sign(updatedUser, secret_key, { expiresIn: "1h" });
+
+    return res.json({
+      update: true,
+      message: "Member information updated successfully.",
+      token: token,
+    });
+  } catch (err) {
+    return res.json({ update: false, message: err.message });
+  }
 }
 
 const storage = multer.diskStorage({
