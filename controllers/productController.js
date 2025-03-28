@@ -256,3 +256,38 @@ export async function getSearchProduct(req, res) {
     }
 }
 
+export async function updateProduct(req, res) {
+    console.log(`PUT / Update Products is requested`);
+    try {
+        const { pdId, pdName, pdPrice, pdRemark, pdTypeId, brandId } = req.body;
+        if (!pdId  || !pdName  || !pdPrice  || !pdRemark  || !pdTypeId || !brandId
+        ) 
+        {
+            return res.json({ update: false, message: "All fields are required." });
+        }
+
+        const existsResult = await database.query({
+            text: `SELECT EXISTS (SELECT 1 FROM products WHERE "pdId" = $1)`,
+            values: [pdId],
+        });
+        if (!existsResult.rows[0].exists) {
+            return res.json({
+                update: false,
+                message:`his id ${pdId} does not exist.`,
+            });
+        }
+
+        await database.query({
+            text: `UPDATE products SET "pdName" = $1, "pdPrice" = $2, "pdRemark" = $3, "pdTypeId" = $4, "brandId" = $5 WHERE "pdId" = $6`,
+            values: [pdName, pdPrice, pdRemark, pdTypeId, brandId, pdId],
+        });
+
+        return res.json({
+            update: true,
+            message: "Product updated successfully.",
+        });
+
+    } catch (err) {
+        return res.json({ update: false, message: err.message });
+    }
+}

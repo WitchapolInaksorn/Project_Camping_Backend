@@ -10,6 +10,7 @@ router.get('/products/search/:id',productController.getSearchProduct)
 router.get('/products/brands/:id',productController.getProductByBrandId)
 router.post('/products',productController.postProduct)
 router.put('/products/:id',productController.putAllProduct)
+router.put('/products/update/:id',productController.updateProduct)
 router.delete('/products/:id',productController.deleteProduct)
 
 export default router
