@@ -140,6 +140,42 @@ paths:
                     type: string
                     example: "id : PROD001 is not found"
 
+  /products/uploadimg:
+    post:
+      summary: Upload product image
+      description: Upload product image for product
+      tags:
+        - Product
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
   /products/update/{id}:
     # PUT Update Product
     put:
@@ -656,7 +692,15 @@ paths:
             type: string
       responses:
         "204":
-          description: Cart deleted successfully
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "id : CART001 is deleted successfully"
         "404":
           description: Cart not found
           content:
@@ -682,7 +726,15 @@ paths:
             type: string
       responses:
         "204":
-          description: Item removed successfully
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "id : CARTDTLO001 is deleted successfully"
         "404":
           description: Item not found
           content:
