@@ -17,9 +17,8 @@ const port = process.env.PORT;
 
 const swaggerfile = fs.readFileSync('service/swagger.yaml','utf-8')
 const swaggerDoc = yaml.parse(swaggerfile)
-app.use('/api-doc',swaggerUI.serve,swaggerUI.setup(swaggerDoc))
+app.use('/api-docs',swaggerUI.serve,swaggerUI.setup(swaggerDoc))
 
-//use cors before routes
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
